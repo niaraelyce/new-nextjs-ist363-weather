@@ -8,7 +8,7 @@ import ButtonDemo from "../components/ButtonDemo";
 import ColorPicker from "../components/ColorPicker";
 import PeoplePicker from "../components/PeoplePicker";
 import Tabs from "../components/Tabs";
-
+import List from "../components/list";
 import {
   getGeoLocation,
   getPeople,
@@ -76,25 +76,18 @@ const Homepage = () => {
           />
         </div>
       )}
-      {daysOfWeek && (
+      {weatherData && daysOfWeek && (
         <section>
           <Tabs
             activeIndex={activeDayIndex}
             items={daysOfWeek}
             clickHandler={setActivedayIndex}
           />
-          <div>
-            {weatherData?.list
-              .filter((block) => {
-                const date = new Date(block.dt * 1000);
-                const options = { weekday: "short" };
-                const day = date.toLocaleDateString("en-US", options);
-                return day === daysOfWeek[activeDayIndex];
-              })
-              .map((block, index) => {
-                return <p key={index}> {block.main.temp} </p>;
-              })}
-          </div>
+          <List
+            activeIndex={activeDayIndex}
+            items={weatherData?.list}
+            daysOfWeek={daysOfWeek}
+          />
         </section>
       )}
     </div>
