@@ -9,4 +9,13 @@ module.exports = {
       },
     ],
   },
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Enable WebAssembly experiments
+    config.experiments = {
+      asyncWebAssembly: true,
+    };
+
+    // Return the modified config
+    return config;
+  },
 };

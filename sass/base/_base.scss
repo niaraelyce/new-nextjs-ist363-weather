@@ -1,3 +1,5 @@
+@use "../abstracts/vars";
+
 h1,
 h2,
 h3,
@@ -20,11 +22,12 @@ li {
 * {
   box-sizing: border-box;
 }
+
 img {
   vertical-align: top;
 }
 
 body {
-  background-color: lightgray;
-  font-family: Arial;
+  background-color: #ddd;
+  font-family: vars.$font__primary;
 }

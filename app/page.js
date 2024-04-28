@@ -1,25 +1,32 @@
 "use client";
 
+// core components
+import { useClient } from "use-client"; // Import useClient hook
 import { useState, useEffect } from "react";
 
+// next js components
 import Image from "next/image";
 
-import ButtonDemo from "../components/ButtonDemo";
-import ColorPicker from "../components/ColorPicker";
-import PeoplePicker from "../components/PeoplePicker";
+// custom components
+import Button from "../components/Button";
 import Col from "../components/Col";
-import Row from "../components/Row";
-import Tabs from "../components/Tabs";
-import List from "../components/list";
 import Container from "../components/Container";
-import { getGeoLocation, getPeople, getWeatherDataByLatLon } from "../lib/api";
+import List from "../components/List";
+import Row from "../components/Row";
+import Section from "../components/Section";
+import Tabs from "../components/Tabs";
+import Temp from "../components/Temp";
+
+import { getGeoLocation, getWeatherDataByLatLon } from "../lib/api";
 
 const Homepage = () => {
+  const [loading, setLoading] = useState(true);
   const [weatherData, setWeatherData] = useState(null);
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [daysOfWeek, setDaysOfWeek] = useState(null);
-  const [activeDayIndex, setActivedayIndex] = useState(0);
+  const [activeDayIndex, setActiveDayIndex] = useState(0);
+  const [tempUnit, setTempUnit] = useState("imperial");
 
   useEffect(() => {
     getGeoLocation()
@@ -36,35 +43,48 @@ const Homepage = () => {
     const fetchData = async () => {
       const response = await getWeatherDataByLatLon(location);
       setWeatherData(response);
+      setLoading(false);
     };
     location ? fetchData() : null;
   }, [location]);
 
   useEffect(() => {
+    // filter out the days of the week
     const tempWeek = [];
-    if (weatherData) {
-      weatherData.list.forEach((block) => {
+
+    weatherData &&
+      weatherData.list.filter((block) => {
         const date = new Date(block.dt * 1000);
         const options = { weekday: "short" };
         const day = date.toLocaleDateString("en-US", options);
+        //console.log(day);
         if (!tempWeek.includes(day)) {
           tempWeek.push(day);
         }
       });
-      setDaysOfWeek(tempWeek);
-    }
+
+    setDaysOfWeek(tempWeek);
+
+    // then set state with the days of the week
   }, [weatherData]);
 
   return (
-    <div>
-      <h1>Weather app</h1>
+    <Section>
       {errorMsg && <div>{errorMsg}</div>}
-      {weatherData && (
+      {loading ? (
+        <Container>
+          <p>Loading...</p>
+        </Container>
+      ) : (
         <Container>
           <Row>
-            <Col>
+            <Col sm={3} md={4}>
               <h2>{weatherData.city.name}</h2>
-              <p>Current temp: {weatherData.list[0].main.temp}&deg; F</p>
+              <Temp
+                size="lg"
+                amount={weatherData.list[0].main.temp}
+                unit={tempUnit}
+              />
               <p>{weatherData.list[0].weather[0].description}</p>
               <Image
                 src={`https://openweathermap.org/img/wn/${weatherData.list[0].weather[0].icon}@2x.png`}
@@ -72,26 +92,37 @@ const Homepage = () => {
                 width={100}
                 height={100}
               />
+              <br />
+              <Button
+                label={`Change to ${
+                  tempUnit === "imperial" ? "celsius" : "fahrenheit"
+                }`}
+                clickHandler={() => {
+                  setTempUnit(tempUnit === "imperial" ? "metric" : "imperial");
+                }}
+              />
             </Col>
-            <Col> Tabs and list goes here.</Col>
+            <Col sm={9} md={8}>
+              {weatherData && daysOfWeek && (
+                <section>
+                  <Tabs
+                    activeIndex={activeDayIndex}
+                    items={daysOfWeek}
+                    clickHandler={setActiveDayIndex}
+                  />
+                  <List
+                    activeIndex={activeDayIndex}
+                    items={weatherData.list}
+                    daysOfWeek={daysOfWeek}
+                    unit={tempUnit}
+                  />
+                </section>
+              )}
+            </Col>
           </Row>
         </Container>
       )}
-      {weatherData && daysOfWeek && (
-        <section>
-          <Tabs
-            activeIndex={activeDayIndex}
-            items={daysOfWeek}
-            clickHandler={setActivedayIndex}
-          />
-          <List
-            activeIndex={activeDayIndex}
-            items={weatherData?.list}
-            daysOfWeek={daysOfWeek}
-          />
-        </section>
-      )}
-    </div>
+    </Section>
   );
 };
 
